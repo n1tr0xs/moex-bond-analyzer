@@ -23,10 +23,10 @@ class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(255, 174)
+        Widget.resize(255, 203)
         self.layoutWidget = QWidget(Widget)
         self.layoutWidget.setObjectName(u"layoutWidget")
-        self.layoutWidget.setGeometry(QRect(1, 1, 252, 170))
+        self.layoutWidget.setGeometry(QRect(1, 1, 252, 200))
         self.verticalLayout_4 = QVBoxLayout(self.layoutWidget)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
@@ -103,6 +103,12 @@ class Ui_Widget(object):
 
         self.verticalLayout_4.addWidget(self.buttonStart)
 
+        self.buttonShowFile = QPushButton(self.layoutWidget)
+        self.buttonShowFile.setObjectName(u"buttonShowFile")
+        self.buttonShowFile.setEnabled(False)
+
+        self.verticalLayout_4.addWidget(self.buttonShowFile)
+
         self.progressBar = QProgressBar(self.layoutWidget)
         self.progressBar.setObjectName(u"progressBar")
         self.progressBar.setValue(0)
@@ -122,5 +128,6 @@ class Ui_Widget(object):
         self.label_2.setText(QCoreApplication.translate("Widget", u"\u041c\u0438\u043d\u0438\u043c\u0443\u043c", None))
         self.label_3.setText(QCoreApplication.translate("Widget", u"\u041c\u0430\u043a\u0441\u0438\u043c\u0443\u043c", None))
         self.buttonStart.setText(QCoreApplication.translate("Widget", u"\u0421\u0442\u0430\u0440\u0442", None))
+        self.buttonShowFile.setText(QCoreApplication.translate("Widget", u"\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0444\u0430\u0439\u043b", None))
     # retranslateUi
 

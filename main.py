@@ -1,4 +1,5 @@
 ﻿import sys
+from subprocess import Popen
 import datetime
 import logging
 from PySide6.QtWidgets import QApplication, QWidget
@@ -11,23 +12,24 @@ from schemas import Bond, SearchCriteria
 
 from ui_form import Ui_Widget
 
+
 class Worker(QObject):
-    finished = Signal()
+    finished = Signal(str)
     progress = Signal(int)
-    
+
     def __init__(self, search_criteria: SearchCriteria, parent=None):
         super().__init__(parent)
         self.search_criteria = search_criteria
 
-    def emit_step(self, step:int, total_steps:int) -> int:
-        self.progress.emit(step/total_steps*100)
+    def emit_step(self, step: int, total_steps: int) -> int:
+        self.progress.emit(step / total_steps * 100)
         return step + 1
-    
+
     def run(self):
         step = 0
         total_steps = 6
         logger.info(f"Начало работы")
-        
+
         moex_api = MOEX_API()
         step = self.emit_step(step, total_steps)
 
@@ -50,17 +52,18 @@ class Worker(QObject):
         step = self.emit_step(step, total_steps)
 
         logger.info(f"Конец работы")
-        self.finished.emit()
+        self.finished.emit(book.file_name)
+
 
 class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
-        
-        self.ui.buttonStart.clicked.connect(self.onBtnClick)
 
-    def onBtnClick(self):       
+        self.ui.buttonStart.clicked.connect(self.startWork)
+
+    def startWork(self):
         # Search criteria setup
         INF = float("inf")
         min_yield = self.ui.minBondYieldSpinBox.value() / 0.87
@@ -79,7 +82,7 @@ class Widget(QWidget):
         self.worker = Worker(search_criteria)
 
         self.worker.moveToThread(self.thread_)
-        
+
         self.thread_.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread_.quit)
 
@@ -90,7 +93,15 @@ class Widget(QWidget):
 
         self.thread_.start()
         self.ui.buttonStart.setEnabled(False)
+        self.ui.buttonShowFile.setEnabled(False)
         self.thread_.finished.connect(lambda: self.ui.buttonStart.setEnabled(True))
+        self.worker.finished.connect(self.on_file_ready)
+
+    def on_file_ready(self, file_name: str):
+        cmd = f"explorer /select,{file_name}"
+        self.ui.buttonShowFile.clicked.connect(lambda: Popen(cmd))
+        self.ui.buttonShowFile.setEnabled(True)
+
 
 # Logger setup
 logging.basicConfig(
