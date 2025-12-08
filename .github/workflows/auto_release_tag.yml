@@ -33,7 +33,7 @@ jobs:
           pycodestyle . --ignore E501,E722,W503 --exclude=ui_form.py
       - name: Build an app
         run: |
-          pyinstaller --noconfirm --clean --log-level FATAL --onedir --name "${env:BUILD_APP_NAME}"  main.py
+          pyinstaller --noconfirm --clean --log-level FATAL --onedir --name "${env:BUILD_APP_NAME}" --noconsole main.py
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4.3.3
         with:
