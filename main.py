@@ -16,6 +16,7 @@ from ui_form import Ui_Widget
 class Worker(QObject):
     finished = Signal(str)
     progress = Signal(int)
+    error = Signal(str)
 
     TOTAL_STEPS = 7
 
@@ -24,10 +25,22 @@ class Worker(QObject):
         self.search_criteria = search_criteria
         self._step = 0
 
+    @staticmethod
+    def guarded(func):
+        def wrapper(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            except Exception as e:
+                logger.exception(e)
+                self.error.emit(str(e))
+
+        return wrapper
+
     def emit_step(self):
         self._step += 1
         self.progress.emit(self._step / self.TOTAL_STEPS * 100)
 
+    @guarded
     def run(self):
         logger.info(f"Начало работы")
 
