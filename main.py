@@ -2,87 +2,126 @@
 from subprocess import Popen
 import datetime
 import logging
+
+from PySide6.QtCore import QCoreApplication, Qt, QThread
+from PySide6.QtWidgets import (
+    QApplication,
+    QDoubleSpinBox,
+    QHBoxLayout,
+    QLabel,
+    QProgressBar,
+    QPushButton,
+    QSizePolicy,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+    QMainWindow,
+)
 from PySide6.QtWidgets import QApplication, QWidget
-from PySide6.QtCore import QObject, Signal, QThread
+from PySide6.QtCore import QThread
 
-from moex import MOEX_API
-from excel import ExcelBook
-import utils
-from schemas import Bond, SearchCriteria
+from schemas import SearchCriteria
+from worker import Worker
 
-from ui_form import Ui_Widget
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s:%(levelname)s - %(message)s",
+    datefmt="%d.%m.%Y %H:%M:%S",
+    handlers=[
+        logging.FileHandler(
+            f"{datetime.datetime.now().strftime("%d.%m.%Y")}.log",
+            mode="w",
+            encoding="utf-8",
+        ),
+        logging.StreamHandler(),
+    ],
+)
 
-
-class Worker(QObject):
-    finished = Signal(str)
-    progress = Signal(int)
-    error = Signal(str)
-
-    TOTAL_STEPS = 7
-
-    def __init__(self, search_criteria: SearchCriteria, parent=None):
-        super().__init__(parent)
-        self.search_criteria = search_criteria
-        self._step = 0
-
-    @staticmethod
-    def guarded(func):
-        def wrapper(self, *args, **kwargs):
-            try:
-                return func(self, *args, **kwargs)
-            except Exception as e:
-                logger.exception(e)
-                self.error.emit(str(e))
-
-        return wrapper
-
-    def emit_step(self):
-        self._step += 1
-        self.progress.emit(self._step / self.TOTAL_STEPS * 100)
-
-    @guarded
-    def run(self):
-        logger.info(f"Начало работы")
-
-        moex_api = MOEX_API()
-        self.emit_step()
-
-        bonds: list[Bond] = moex_api.get_bonds()
-        self.emit_step()
-
-        bonds: list[Bond] = utils.filter_bonds(bonds, self.search_criteria)
-        self.emit_step()
-
-        bonds: list[Bond] = utils.with_credit_scores(bonds)
-        self.emit_step()
-
-        bonds.sort(key=lambda b: -b.approximate_yield)
-        self.emit_step()
-
-        book = ExcelBook()
-        self.emit_step()
-
-        book.write_bonds(bonds)
-        self.emit_step()
-
-        logger.info(f"Конец работы")
-        self.finished.emit(book.file_name)
+logger = logging.getLogger("Main")
 
 
-class Widget(QWidget):
+class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.ui = Ui_Widget()
-        self.ui.setupUi(self)
 
-        self.ui.buttonStart.clicked.connect(self.startWork)
+        self.centralLayout = QVBoxLayout()
+        central = QWidget()
+        central.setLayout(self.centralLayout)
+        self.setCentralWidget(central)
+
+        # Минимальная доходность
+        self.horizontalLayout_1 = QHBoxLayout()
+        self.minBondYieldLabel = QLabel()
+        self.minBondYieldDoubleSpinBox = QDoubleSpinBox()
+        self.minBondYieldDoubleSpinBox.setMinimum(0)
+        self.minBondYieldDoubleSpinBox.setMaximum(10**10)
+
+        self.horizontalLayout_1.addWidget(self.minBondYieldLabel)
+        self.horizontalLayout_1.addWidget(self.minBondYieldDoubleSpinBox)
+
+        # Дней до погашения
+        self.verticalLayout_1 = QVBoxLayout()
+        self.verticalLayout_1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.daysToMaturityLabel = QLabel()
+        self.daysToMaturityLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.daysToMaturityLabel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.verticalLayout_1.addWidget(self.daysToMaturityLabel)
+
+        self.horizontalLayout_2 = QHBoxLayout()
+        ## Минимум
+        self.verticalLayout_2 = QVBoxLayout()
+        self.minDaysToMaturityLabel = QLabel()
+        self.minDaysToMaturityLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.minDaysToMaturityLabel.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Fixed
+        )
+        self.minDaysToMaturitySpinBox = QSpinBox()
+        self.minDaysToMaturitySpinBox.setMinimum(0)
+        self.minDaysToMaturitySpinBox.setMaximum(10**6)
+        self.verticalLayout_2.addWidget(self.minDaysToMaturityLabel)
+        self.verticalLayout_2.addWidget(self.minDaysToMaturitySpinBox)
+        ## Максимум
+        self.verticalLayout_3 = QVBoxLayout()
+        self.maxDaysToMaturityLabel = QLabel()
+        self.maxDaysToMaturityLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.maxDaysToMaturityLabel.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Fixed
+        )
+        self.maxDaysToMaturitySpinBox = QSpinBox()
+        self.maxDaysToMaturitySpinBox.setMinimum(0)
+        self.maxDaysToMaturitySpinBox.setMaximum(10**6)
+        self.verticalLayout_3.addWidget(self.maxDaysToMaturityLabel)
+        self.verticalLayout_3.addWidget(self.maxDaysToMaturitySpinBox)
+
+        self.horizontalLayout_2.addLayout(self.verticalLayout_2)
+        self.horizontalLayout_2.addLayout(self.verticalLayout_3)
+        self.verticalLayout_1.addLayout(self.horizontalLayout_2)
+
+        # Кнопка "Старт"
+        self.startWorkButton = QPushButton()
+        self.startWorkButton.clicked.connect(self.startWork)
+        # Кнопка "Показать файл"
+        self.showFileButton = QPushButton()
+        # Прогресс бар
+        self.progressBar = QProgressBar()
+        self.progressBar.setValue(0)
+
+        self.centralLayout.addLayout(self.horizontalLayout_1)
+        self.centralLayout.addLayout(self.verticalLayout_1)
+        self.centralLayout.addWidget(self.startWorkButton)
+        self.centralLayout.addWidget(self.showFileButton)
+        self.centralLayout.addWidget(self.progressBar)
+
+        self.retranslateUi()
+        self.adjustSize()
+        self.setFixedSize(self.sizeHint())
 
     def startWork(self):
         # Search criteria setup
         INF = float("inf")
-        min_yield = self.ui.minBondYieldSpinBox.value() / 0.87
-        min_days = self.ui.minDaysToMaturitySpinBox.value()
-        max_days = self.ui.maxDaysToMaturitySpinBox.value() or INF
+        min_yield = self.minBondYieldDoubleSpinBox.value() / 0.87
+        min_days = self.minDaysToMaturitySpinBox.value()
+        max_days = self.maxDaysToMaturitySpinBox.value() or INF
 
         search_criteria: SearchCriteria = SearchCriteria(
             min_bond_yield=min_yield,
@@ -103,40 +142,33 @@ class Widget(QWidget):
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread_.finished.connect(self.thread_.deleteLater)
 
-        self.worker.progress.connect(self.ui.progressBar.setValue)
+        self.worker.progress.connect(self.progressBar.setValue)
 
         self.thread_.start()
-        self.ui.buttonStart.setEnabled(False)
-        self.ui.buttonShowFile.setEnabled(False)
-        self.thread_.finished.connect(lambda: self.ui.buttonStart.setEnabled(True))
+        self.startWorkButton.setEnabled(False)
+        self.showFileButton.setEnabled(False)
+        self.thread_.finished.connect(lambda: self.startWorkButton.setEnabled(True))
         self.worker.finished.connect(self.on_file_ready)
 
     def on_file_ready(self, file_name: str):
         cmd = f"explorer /select,{file_name}"
-        self.ui.buttonShowFile.clicked.connect(lambda: Popen(cmd))
-        self.ui.buttonShowFile.setEnabled(True)
+        self.showFileButton.clicked.connect(lambda: Popen(cmd))
+        self.showFileButton.setEnabled(True)
 
+    def retranslateUi(self):
+        _ = lambda text: QCoreApplication.translate("MainWindow", text)
 
-# Logger setup
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s:%(levelname)s - %(message)s",
-    datefmt="%d.%m.%Y %H:%M:%S",
-    handlers=[
-        logging.FileHandler(
-            f"{datetime.datetime.now().strftime("%d.%m.%Y")}.log",
-            mode="w",
-            encoding="utf-8",
-        ),
-        logging.StreamHandler(),
-    ],
-)
+        self.setWindowTitle(_("MOEX Bonds Analyzer by n1tr0xs"))
+        self.minBondYieldLabel.setText(_("Минимальная доходность"))
+        self.daysToMaturityLabel.setText(_("Дней до погашения"))
+        self.minDaysToMaturityLabel.setText(_("Минимум"))
+        self.maxDaysToMaturityLabel.setText(_("Максимум"))
+        self.startWorkButton.setText(_("Старт"))
+        self.showFileButton.setText(_("Показать файл отчета"))
 
-logger = logging.getLogger("Main")
 
 if __name__ == "__main__":
-    # main()
-    app = QApplication(sys.argv)
-    widget = Widget()
-    widget.show()
+    app = QApplication([])
+    window = MainWindow()
+    window.show()
     sys.exit(app.exec())
