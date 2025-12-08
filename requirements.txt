@@ -2,4 +2,5 @@ PySide6
 logging
 requests
 bs4
+lxml
 openpyxl
