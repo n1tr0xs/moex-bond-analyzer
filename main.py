@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
         self.verticalLayout_1.addWidget(self.daysToMaturityLabel)
 
         self.horizontalLayout_2 = QHBoxLayout()
-        ## Минимум
+        # Минимум
         self.verticalLayout_2 = QVBoxLayout()
         self.minDaysToMaturityLabel = QLabel()
         self.minDaysToMaturityLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -80,7 +80,7 @@ class MainWindow(QMainWindow):
         self.minDaysToMaturitySpinBox.setMaximum(10**6)
         self.verticalLayout_2.addWidget(self.minDaysToMaturityLabel)
         self.verticalLayout_2.addWidget(self.minDaysToMaturitySpinBox)
-        ## Максимум
+        # Максимум
         self.verticalLayout_3 = QVBoxLayout()
         self.maxDaysToMaturityLabel = QLabel()
         self.maxDaysToMaturityLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -156,15 +156,25 @@ class MainWindow(QMainWindow):
         self.showFileButton.setEnabled(True)
 
     def retranslateUi(self):
-        _ = lambda text: QCoreApplication.translate("MainWindow", text)
-
-        self.setWindowTitle(_("MOEX Bonds Analyzer by n1tr0xs"))
-        self.minBondYieldLabel.setText(_("Минимальная доходность"))
-        self.daysToMaturityLabel.setText(_("Дней до погашения"))
-        self.minDaysToMaturityLabel.setText(_("Минимум"))
-        self.maxDaysToMaturityLabel.setText(_("Максимум"))
-        self.startWorkButton.setText(_("Старт"))
-        self.showFileButton.setText(_("Показать файл отчета"))
+        self.setWindowTitle(
+            QCoreApplication.translate("MainWindow", "MOEX Bonds Analyzer by n1tr0xs")
+        )
+        self.minBondYieldLabel.setText(
+            QCoreApplication.translate("MainWindow", "Минимальная доходность")
+        )
+        self.daysToMaturityLabel.setText(
+            QCoreApplication.translate("MainWindow", "Дней до погашения")
+        )
+        self.minDaysToMaturityLabel.setText(
+            QCoreApplication.translate("MainWindow", "Минимум")
+        )
+        self.maxDaysToMaturityLabel.setText(
+            QCoreApplication.translate("MainWindow", "Максимум")
+        )
+        self.startWorkButton.setText(QCoreApplication.translate("MainWindow", "Старт"))
+        self.showFileButton.setText(
+            QCoreApplication.translate("MainWindow", "Показать файл отчета")
+        )
 
 
 if __name__ == "__main__":
