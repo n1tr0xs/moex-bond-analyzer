@@ -122,7 +122,7 @@ class Ui_Widget(object):
     # setupUi
 
     def retranslateUi(self, Widget):
-        Widget.setWindowTitle(QCoreApplication.translate("Widget", u"MOEX Bond recommendations by n1tr0xs", None))
+        Widget.setWindowTitle(QCoreApplication.translate("Widget", u"MOEX Bond Analyzer by n1tr0xs", None))
         self.label.setText(QCoreApplication.translate("Widget", u"\u041c\u0438\u043d\u0438\u043c\u0430\u043b\u044c\u043d\u0430\u044f \u0434\u043e\u0445\u043e\u0434\u043d\u043e\u0441\u0442\u044c", None))
         self.label_1.setText(QCoreApplication.translate("Widget", u"\u0414\u043d\u0435\u0439 \u0434\u043e \u043f\u043e\u0433\u0430\u0448\u0435\u043d\u0438\u044f", None))
         self.label_2.setText(QCoreApplication.translate("Widget", u"\u041c\u0438\u043d\u0438\u043c\u0443\u043c", None))

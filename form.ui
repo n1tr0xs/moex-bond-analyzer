@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MOEX Bond recommendations by n1tr0xs</string>
+   <string>MOEX Bond Analyzer by n1tr0xs</string>
   </property>
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
