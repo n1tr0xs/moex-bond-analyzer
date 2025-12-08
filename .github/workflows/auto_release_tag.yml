@@ -28,9 +28,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller pycodestyle
-      # - name: PEP8 Check
-      #   run: |
-      #     pycodestyle . --ignore E501,E722,W503 --exclude=ui_form.py
+      - name: PEP8 Check
+        run: |
+          pycodestyle . --ignore E501,E722,W503 --exclude=ui_form.py
       - name: Build an app
         run: |
           pyinstaller --noconfirm --clean --log-level FATAL --onedir --name "${env:BUILD_APP_NAME}" --contents-directory "." --noconsole main.py
