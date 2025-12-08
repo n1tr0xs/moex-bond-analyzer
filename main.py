@@ -17,39 +17,40 @@ class Worker(QObject):
     finished = Signal(str)
     progress = Signal(int)
 
+    TOTAL_STEPS = 7
+
     def __init__(self, search_criteria: SearchCriteria, parent=None):
         super().__init__(parent)
         self.search_criteria = search_criteria
+        self._step = 0
 
-    def emit_step(self, step: int, total_steps: int) -> int:
-        self.progress.emit(step / total_steps * 100)
-        return step + 1
+    def emit_step(self):
+        self._step += 1
+        self.progress.emit(self._step / self.TOTAL_STEPS * 100)
 
     def run(self):
-        step = 0
-        total_steps = 6
         logger.info(f"Начало работы")
 
         moex_api = MOEX_API()
-        step = self.emit_step(step, total_steps)
+        self.emit_step()
 
         bonds: list[Bond] = moex_api.get_bonds()
-        step = self.emit_step(step, total_steps)
+        self.emit_step()
 
         bonds: list[Bond] = utils.filter_bonds(bonds, self.search_criteria)
-        step = self.emit_step(step, total_steps)
+        self.emit_step()
 
         bonds: list[Bond] = utils.with_credit_scores(bonds)
-        step = self.emit_step(step, total_steps)
+        self.emit_step()
 
         bonds.sort(key=lambda b: -b.approximate_yield)
-        step = self.emit_step(step, total_steps)
+        self.emit_step()
 
         book = ExcelBook()
-        step = self.emit_step(step, total_steps)
+        self.emit_step()
 
         book.write_bonds(bonds)
-        step = self.emit_step(step, total_steps)
+        self.emit_step()
 
         logger.info(f"Конец работы")
         self.finished.emit(book.file_name)
