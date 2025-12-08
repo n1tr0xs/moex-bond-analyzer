@@ -36,8 +36,6 @@ class ExcelBook:
         """
         if file_name is None:
             file_name = datetime.datetime.now().strftime("%d.%m.%Y")
-        if not file_name.endswith(".xlsx"):
-            file_name += ".xlsx"
         return file_name
 
     def _center_worksheet(
@@ -80,6 +78,8 @@ class ExcelBook:
                 filename = (
                     self.file_name + (f"({attempt})" if attempt else "")
                 )
+                if not filename.endswith(".xlsx"):
+                    filename += ".xlsx"
                 wb.save(filename)
                 logger.info(f"Файл сохранен: {filename}.")
                 return
