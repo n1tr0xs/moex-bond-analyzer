@@ -75,7 +75,7 @@ class Worker(QObject):
         bonds = utils.with_credit_scores(bonds)
         self.emit_step()
 
-        bonds.sort(key=lambda b: -b.approximate_yield)
+        bonds.sort(key=lambda b: -b.yield_to_maturity)
         self.emit_step()
 
         book = ExcelBook()
