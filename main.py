@@ -118,20 +118,8 @@ class MainWindow(QMainWindow):
         self.showFileButton.setEnabled(False)
         self.openFileButton.setEnabled(False)
 
-        # Search criteria setup
-        INF = float("inf")
-        min_yield = self.minBondYieldDoubleSpinBox.value() / 0.87
-        min_days = self.minDaysToMaturitySpinBox.value()
-        max_days = self.maxDaysToMaturitySpinBox.value() or INF
-
-        search_criteria: SearchCriteria = SearchCriteria(
-            min_bond_yield=min_yield,
-            min_days_to_maturity=min_days,
-            max_days_to_maturity=max_days,
-            face_units=None,
-        )
-
         self.thread_ = QThread()
+        search_criteria = self.get_search_criteria()
         self.worker = Worker(search_criteria)
 
         self.worker.moveToThread(self.thread_)
@@ -144,13 +132,30 @@ class MainWindow(QMainWindow):
 
         self.worker.progress.connect(self.progressBar.setValue)
 
-        self.thread_.start()
-
         self.thread_.finished.connect(lambda: self.startWorkButton.setEnabled(True))
         self.thread_.finished.connect(lambda: self.showFileButton.setEnabled(True))
         self.thread_.finished.connect(lambda: self.openFileButton.setEnabled(True))
-
         self.worker.finished.connect(self.on_file_ready)
+
+        self.thread_.start()
+
+    def get_search_criteria(self) -> SearchCriteria:
+        """
+        Creates search criteria from user input.
+
+        :return: SearchCriteria object.
+        :rtype: SearchCriteria
+        """
+        min_yield = self.minBondYieldDoubleSpinBox.value() / 0.87
+        min_days = self.minDaysToMaturitySpinBox.value()
+        max_days = self.maxDaysToMaturitySpinBox.value() or float("inf")
+
+        return SearchCriteria(
+            min_bond_yield=min_yield,
+            min_days_to_maturity=min_days,
+            max_days_to_maturity=max_days,
+            face_units=None,
+        )
 
     def on_file_ready(self, file_name: str):
         """
