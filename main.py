@@ -83,9 +83,10 @@ class MainWindow(QMainWindow):
         # Кнопка "Старт"
         self.startWorkButton = QPushButton()
         self.startWorkButton.clicked.connect(self.startWork)
-        # Кнопки "Показать файл", "Открыть файл"
+        # Кнопка "Показать файл"
         self.showFileButton = QPushButton()
         self.showFileButton.setEnabled(False)
+        # Кнопка "Открыть файл"
         self.openFileButton = QPushButton()
         self.openFileButton.setEnabled(False)
         # Прогресс бар
