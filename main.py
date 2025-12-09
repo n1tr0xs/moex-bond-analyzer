@@ -1,4 +1,5 @@
 ﻿import sys
+import os
 from subprocess import Popen
 import datetime
 import logging
@@ -106,8 +107,14 @@ class MainWindow(QMainWindow):
         # Кнопка "Старт"
         self.startWorkButton = QPushButton()
         self.startWorkButton.clicked.connect(self.startWork)
-        # Кнопка "Показать файл"
+        # Кнопки "Показать файл", "Открыть файл"
+        self.horizontalLayout_3 = QHBoxLayout()
         self.showFileButton = QPushButton()
+        self.showFileButton.setEnabled(False)
+        self.openFileButton = QPushButton()
+        self.openFileButton.setEnabled(False)
+        self.horizontalLayout_3.addWidget(self.showFileButton)
+        self.horizontalLayout_3.addWidget(self.openFileButton)
         # Прогресс бар
         self.progressBar = QProgressBar()
         self.progressBar.setValue(0)
@@ -115,7 +122,7 @@ class MainWindow(QMainWindow):
         self.centralLayout.addLayout(self.horizontalLayout_1)
         self.centralLayout.addLayout(self.verticalLayout_1)
         self.centralLayout.addWidget(self.startWorkButton)
-        self.centralLayout.addWidget(self.showFileButton)
+        self.centralLayout.addLayout(self.horizontalLayout_3)
         self.centralLayout.addWidget(self.progressBar)
 
         self.retranslateUi()
@@ -126,6 +133,11 @@ class MainWindow(QMainWindow):
         """
         Starts worker with data from input fields.
         """
+        # Turn off buttons
+        self.startWorkButton.setEnabled(False)
+        self.showFileButton.setEnabled(False)
+        self.openFileButton.setEnabled(False)
+
         # Search criteria setup
         INF = float("inf")
         min_yield = self.minBondYieldDoubleSpinBox.value() / 0.87
@@ -153,9 +165,11 @@ class MainWindow(QMainWindow):
         self.worker.progress.connect(self.progressBar.setValue)
 
         self.thread_.start()
-        self.startWorkButton.setEnabled(False)
-        self.showFileButton.setEnabled(False)
+
         self.thread_.finished.connect(lambda: self.startWorkButton.setEnabled(True))
+        self.thread_.finished.connect(lambda: self.showFileButton.setEnabled(True))
+        self.thread_.finished.connect(lambda: self.openFileButton.setEnabled(True))
+
         self.worker.finished.connect(self.on_file_ready)
 
     def on_file_ready(self, file_name: str):
@@ -170,6 +184,7 @@ class MainWindow(QMainWindow):
         cmd = f"explorer /select,{file_name}"
         self.showFileButton.setEnabled(True)
         self.showFileButton.clicked.connect(lambda: Popen(cmd))
+        self.openFileButton.clicked.connect(lambda: os.startfile(file_name))
 
     def retranslateUi(self):
         self.setWindowTitle(
@@ -190,6 +205,9 @@ class MainWindow(QMainWindow):
         self.startWorkButton.setText(QCoreApplication.translate("MainWindow", "Старт"))
         self.showFileButton.setText(
             QCoreApplication.translate("MainWindow", "Показать файл отчета")
+        )
+        self.openFileButton.setText(
+            QCoreApplication.translate("MainWindow", "Открыть файл отчета")
         )
 
 
