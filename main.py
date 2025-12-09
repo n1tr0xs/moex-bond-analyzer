@@ -122,9 +122,6 @@ class MainWindow(QMainWindow):
 
         worker.signals.progress.connect(self.progressBar.setValue)
 
-        worker.signals.finished.connect(lambda: self.startWorkButton.setEnabled(True))
-        worker.signals.finished.connect(lambda: self.showFileButton.setEnabled(True))
-        worker.signals.finished.connect(lambda: self.openFileButton.setEnabled(True))
         worker.signals.finished.connect(self.on_file_ready)
 
         self.threadpool.start(worker)
@@ -150,16 +147,22 @@ class MainWindow(QMainWindow):
     def on_file_ready(self, file_name: str):
         """
         Handler for worker finished.
-        Turns showFielButton on.
-        Binds slot to open explorer on the file.
+        Turns startWorkButton, showFileButton, openFileButton on.
+        Binds showFileButton.clicked to open explorer on excel file.
+        Binds openFileButton.clicked to open excel file.
 
         :param file_name: name of file to highlight in explorer.
         :type file_name: str
         """
+        print("on file ready called.")
         cmd = f"explorer /select,{file_name}"
-        self.showFileButton.setEnabled(True)
+
         self.showFileButton.clicked.connect(lambda: Popen(cmd))
         self.openFileButton.clicked.connect(lambda: os.startfile(file_name))
+
+        self.startWorkButton.setEnabled(True)
+        self.showFileButton.setEnabled(True)
+        self.openFileButton.setEnabled(True)
 
     def retranslateUi(self):
         self.setWindowTitle(
