@@ -150,7 +150,7 @@ class Bond:
     def days_to_maturity(self) -> int:
         """
         Calculates days to bond maturity date from today.
-        
+
         :return: Days to bond maturity date from today.
         :rtype: int
         """
@@ -160,7 +160,7 @@ class Bond:
     def approximate_yield(self) -> float:
         """
         Calculates approximate bond yield from today to maturity date in percents.
-        
+
         :return: Approximate bond yield from today to maturity date in percents.
         :rtype: float
         """
