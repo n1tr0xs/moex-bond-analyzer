@@ -15,6 +15,7 @@ class Worker(QObject):
     """
     Worker to be runned in thread.
     """
+
     finished = Signal(str)
     progress = Signal(int)
     error = Signal(str)
@@ -24,7 +25,7 @@ class Worker(QObject):
     def __init__(self, search_criteria: SearchCriteria, parent=None):
         """
         Initialize the Worker.
-        
+
         :param search_criteria: Search criterias for bonds filtering.
         :type search_criteria: SearchCriteria
         :param parent: QT parent.
@@ -68,13 +69,13 @@ class Worker(QObject):
         moex_api = MOEX_API()
         self.emit_step()
 
-        bonds: list[Bond] = moex_api.get_bonds()
+        bonds = moex_api.get_bonds()
         self.emit_step()
 
-        bonds: list[Bond] = utils.filter_bonds(bonds, self.search_criteria)
+        bonds = utils.filter_bonds(bonds, self.search_criteria)
         self.emit_step()
 
-        bonds: list[Bond] = utils.with_credit_scores(bonds)
+        bonds = utils.with_credit_scores(bonds)
         self.emit_step()
 
         bonds.sort(key=lambda b: -b.approximate_yield)

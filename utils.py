@@ -19,19 +19,22 @@ def filter_bonds(bonds: list[Bond], criteria: SearchCriteria) -> list[Bond]:
     :rtype: list[Bond]
     """
     filtered_bonds = []
-    # TODO
     for bond in bonds:
-        condition = (
-            (criteria.min_days_to_maturity <= bond.days_to_maturity)
-            and (bond.days_to_maturity <= criteria.max_days_to_maturity)
-            and (criteria.min_bond_yield <= bond.approximate_yield)
-            and (criteria.face_units is None or bond.face_unit in criteria.face_units)
-        )
-        if condition:
-            logger.info(f"Облигация {bond.ISIN} прошла проверку критериев.")
-            filtered_bonds.append(bond)
-        else:
-            logger.info(f"Облигация {bond.ISIN} не прошла проверку критериев.")
+        if not (criteria.min_days_to_maturity <= bond.days_to_maturity):
+            logger.info(f"Облигация {bond.ISIN} не прошла проверку по сроку погашения.")
+            continue
+        if not (bond.days_to_maturity <= criteria.max_days_to_maturity):
+            logger.info(f"Облигация {bond.ISIN} не прошла проверку по сроку погашения.")
+            continue
+        if not (criteria.min_bond_yield <= bond.approximate_yield):
+            logger.info(f"Облигация {bond.ISIN} не прошла проверку по доходности.")
+            continue
+        if not (criteria.face_units is None or bond.face_unit in criteria.face_units):
+            logger.info(f"Облигация {bond.ISIN} не прошла проверку по валюте.")
+            continue
+
+        logger.info(f"Облигация {bond.ISIN} прошла проверку критериев.")
+        filtered_bonds.append(bond)
     return filtered_bonds
 
 
@@ -63,11 +66,14 @@ def _get_credit_score_SMARTLAB(ISIN: str) -> str:
     BASE_URL = "https://smart-lab.ru/q/bonds/{}"
     response = requests.get(BASE_URL.format(ISIN))
     soup = BeautifulSoup(response.text, "lxml")
-    div = soup.find("div", text="Кредитный рейтинг")
+    score = "Неизвестно"  # Default value
     try:
+        div = soup.find("div", text="Кредитный рейтинг")
         score = div.find_next().text.strip()
         logger.info(f"Кредитный рейтинг эмитента облигации {ISIN} - {score}.")
-    except AttributeError:
-        score = "Неизвестно"
+    except AttributeError as e:
         logger.info(f"Кредитный рейтинг эмитента облигации {ISIN} не известен.")
+        logger.exception(e)
+    except Exception as e:
+        logger.exception(e)
     return score
