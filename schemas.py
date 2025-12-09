@@ -159,6 +159,16 @@ class Bond:
         return (self.maturity_date - datetime.date.today()).days
 
     @property
+    def coupons_income(self) -> float:
+        """
+        Calculates coupons income to maturity date.
+
+        :return: Total coupons income to maturity date.
+        :rtype: float
+        """
+        return self.coupons_amount * self.coupon_value
+
+    @property
     def approximate_yield(self) -> float:
         """
         Calculates approximate bond yield from today to maturity date in percents.
@@ -169,14 +179,7 @@ class Bond:
         if self.days_to_maturity <= 0:
             return 0
 
-        coupons_income = self.coupons_amount * self.coupon_value
-
-        total_income = self.face_value + coupons_income
-        rate = (
-            (total_income / self.broker_price - 1) * 100 * 365 / self.days_to_maturity
-        )
-
-        return round(rate, 2)
+        return round(self.yield_to_maturity / self.days_to_maturity * 365, 2)
 
     @property
     def yield_to_maturity(self) -> float:
@@ -189,9 +192,7 @@ class Bond:
         if self.days_to_maturity <= 0:
             return 0
 
-        coupons_income = self.coupons_amount * self.coupon_value
-
-        total_income = self.face_value + coupons_income
+        total_income = self.face_value + self.coupons_income
         total_yield = (total_income / self.broker_price - 1) * 100
 
         return round(total_yield, 2)
