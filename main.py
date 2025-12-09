@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QMainWindow,
+    QGridLayout,
 )
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtCore import QThread
@@ -51,79 +52,57 @@ class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.centralLayout = QVBoxLayout()
         central = QWidget()
+        self.centralLayout = QGridLayout()
         central.setLayout(self.centralLayout)
         self.setCentralWidget(central)
 
         # Минимальная доходность
-        self.horizontalLayout_1 = QHBoxLayout()
         self.minBondYieldLabel = QLabel()
         self.minBondYieldDoubleSpinBox = QDoubleSpinBox()
         self.minBondYieldDoubleSpinBox.setMinimum(0)
         self.minBondYieldDoubleSpinBox.setMaximum(10**10)
 
-        self.horizontalLayout_1.addWidget(self.minBondYieldLabel)
-        self.horizontalLayout_1.addWidget(self.minBondYieldDoubleSpinBox)
-
         # Дней до погашения
-        self.verticalLayout_1 = QVBoxLayout()
-        self.verticalLayout_1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.daysToMaturityLabel = QLabel()
         self.daysToMaturityLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.daysToMaturityLabel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.verticalLayout_1.addWidget(self.daysToMaturityLabel)
 
-        self.horizontalLayout_2 = QHBoxLayout()
         # Минимум
-        self.verticalLayout_2 = QVBoxLayout()
         self.minDaysToMaturityLabel = QLabel()
         self.minDaysToMaturityLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.minDaysToMaturityLabel.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Fixed
-        )
         self.minDaysToMaturitySpinBox = QSpinBox()
         self.minDaysToMaturitySpinBox.setMinimum(0)
         self.minDaysToMaturitySpinBox.setMaximum(10**6)
-        self.verticalLayout_2.addWidget(self.minDaysToMaturityLabel)
-        self.verticalLayout_2.addWidget(self.minDaysToMaturitySpinBox)
         # Максимум
-        self.verticalLayout_3 = QVBoxLayout()
         self.maxDaysToMaturityLabel = QLabel()
         self.maxDaysToMaturityLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.maxDaysToMaturityLabel.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Fixed
-        )
         self.maxDaysToMaturitySpinBox = QSpinBox()
         self.maxDaysToMaturitySpinBox.setMinimum(0)
         self.maxDaysToMaturitySpinBox.setMaximum(10**6)
-        self.verticalLayout_3.addWidget(self.maxDaysToMaturityLabel)
-        self.verticalLayout_3.addWidget(self.maxDaysToMaturitySpinBox)
-
-        self.horizontalLayout_2.addLayout(self.verticalLayout_2)
-        self.horizontalLayout_2.addLayout(self.verticalLayout_3)
-        self.verticalLayout_1.addLayout(self.horizontalLayout_2)
 
         # Кнопка "Старт"
         self.startWorkButton = QPushButton()
         self.startWorkButton.clicked.connect(self.startWork)
         # Кнопки "Показать файл", "Открыть файл"
-        self.horizontalLayout_3 = QHBoxLayout()
         self.showFileButton = QPushButton()
         self.showFileButton.setEnabled(False)
         self.openFileButton = QPushButton()
         self.openFileButton.setEnabled(False)
-        self.horizontalLayout_3.addWidget(self.showFileButton)
-        self.horizontalLayout_3.addWidget(self.openFileButton)
         # Прогресс бар
         self.progressBar = QProgressBar()
         self.progressBar.setValue(0)
 
-        self.centralLayout.addLayout(self.horizontalLayout_1)
-        self.centralLayout.addLayout(self.verticalLayout_1)
-        self.centralLayout.addWidget(self.startWorkButton)
-        self.centralLayout.addLayout(self.horizontalLayout_3)
-        self.centralLayout.addWidget(self.progressBar)
+        self.centralLayout.addWidget(self.minBondYieldLabel, 0, 0)
+        self.centralLayout.addWidget(self.minBondYieldDoubleSpinBox, 0, 1)
+        self.centralLayout.addWidget(self.daysToMaturityLabel, 1, 0, 1, 2)
+        self.centralLayout.addWidget(self.minDaysToMaturityLabel, 2, 0)
+        self.centralLayout.addWidget(self.maxDaysToMaturityLabel, 2, 1)
+        self.centralLayout.addWidget(self.minDaysToMaturitySpinBox, 3, 0)
+        self.centralLayout.addWidget(self.maxDaysToMaturitySpinBox, 3, 1)
+        self.centralLayout.addWidget(self.startWorkButton, 4, 0, 1, 2)
+        self.centralLayout.addWidget(self.showFileButton, 5, 0)
+        self.centralLayout.addWidget(self.openFileButton, 5, 1)
+        self.centralLayout.addWidget(self.progressBar, 6, 0, 1, 2)
 
         self.retranslateUi()
         self.adjustSize()
