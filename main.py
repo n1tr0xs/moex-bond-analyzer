@@ -125,7 +125,6 @@ class MainWindow(QMainWindow):
 
         search_criteria: SearchCriteria = SearchCriteria(
             min_bond_yield=min_yield,
-            max_bond_yield=INF,
             min_days_to_maturity=min_days,
             max_days_to_maturity=max_days,
             face_units=None,
