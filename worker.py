@@ -1,24 +1,40 @@
 import logging
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
 from moex import MOEX_API
 from excel import ExcelBook
-from schemas import SearchCriteria, Bond
+from schemas import SearchCriteria
 import utils
 
 
 logger = logging.getLogger("Worker")
 
 
-class Worker(QObject):
+class WorkerSignals(QObject):
     """
-    Worker to be runned in thread.
+    Docstring for WorkerSignals
+
+    Defines the signals available from a running worker thread.
+    Supported signals are:
+
+    finished
+        Name of the created file.
+    error
+        str
+    progress
+        Percent of work completed.
     """
 
     finished = Signal(str)
     progress = Signal(int)
     error = Signal(str)
+
+
+class Worker(QRunnable):
+    """
+    Worker to be runned in thread.
+    """
 
     TOTAL_STEPS = 5
 
@@ -31,10 +47,11 @@ class Worker(QObject):
         :param parent: QT parent.
         """
         super().__init__(parent)
-        self.search_criteria = search_criteria
         self._step = 0
+        self.search_criteria = search_criteria
         self.moex_api = MOEX_API()
-        self.progress.emit(0)
+        self.signals = WorkerSignals()
+        self.signals.progress.emit(0)
 
     @staticmethod
     def guarded(func):
@@ -43,7 +60,7 @@ class Worker(QObject):
                 return func(self, *args, **kwargs)
             except Exception as e:
                 logger.exception(e)
-                self.error.emit(str(e))
+                self.signals.error.emit(str(e))
 
         return wrapper
 
@@ -52,8 +69,9 @@ class Worker(QObject):
         Emits progress.
         """
         self._step += 1
-        self.progress.emit(self._step / self.TOTAL_STEPS * 100)
+        self.signals.progress.emit(self._step / self.TOTAL_STEPS * 100)
 
+    @Slot()
     @guarded
     def run(self):
         """
@@ -83,4 +101,4 @@ class Worker(QObject):
         self.emit_step()
 
         logger.info(f"Конец работы")
-        self.finished.emit(book.file_name)
+        self.signals.finished.emit(book.file_name)

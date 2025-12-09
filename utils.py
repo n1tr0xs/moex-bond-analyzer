@@ -1,7 +1,8 @@
 import logging
-import requests
 import copy
+import requests
 from bs4 import BeautifulSoup
+
 from schemas import Bond, SearchCriteria
 
 logger = logging.getLogger("Utils")

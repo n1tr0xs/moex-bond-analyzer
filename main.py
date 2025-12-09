@@ -1,26 +1,23 @@
-﻿import sys
-import os
+﻿import os
+import sys
 from subprocess import Popen
 import datetime
 import logging
 
-from PySide6.QtCore import QCoreApplication, Qt, QThread
+from PySide6.QtCore import QCoreApplication, Qt, QThreadPool
 from PySide6.QtWidgets import (
     QApplication,
     QDoubleSpinBox,
-    QHBoxLayout,
     QLabel,
     QProgressBar,
     QPushButton,
-    QSizePolicy,
     QSpinBox,
-    QVBoxLayout,
     QWidget,
     QMainWindow,
     QGridLayout,
+    QApplication,
+    QWidget,
 )
-from PySide6.QtWidgets import QApplication, QWidget
-from PySide6.QtCore import QThread
 
 from schemas import SearchCriteria
 from worker import Worker
@@ -51,6 +48,8 @@ class MainWindow(QMainWindow):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        self.threadpool = QThreadPool.globalInstance()
 
         central = QWidget()
         self.centralLayout = QGridLayout()
@@ -118,26 +117,17 @@ class MainWindow(QMainWindow):
         self.showFileButton.setEnabled(False)
         self.openFileButton.setEnabled(False)
 
-        self.thread_ = QThread()
         search_criteria = self.get_search_criteria()
-        self.worker = Worker(search_criteria)
+        worker = Worker(search_criteria)
 
-        self.worker.moveToThread(self.thread_)
+        worker.signals.progress.connect(self.progressBar.setValue)
 
-        self.thread_.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread_.quit)
+        worker.signals.finished.connect(lambda: self.startWorkButton.setEnabled(True))
+        worker.signals.finished.connect(lambda: self.showFileButton.setEnabled(True))
+        worker.signals.finished.connect(lambda: self.openFileButton.setEnabled(True))
+        worker.signals.finished.connect(self.on_file_ready)
 
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread_.finished.connect(self.thread_.deleteLater)
-
-        self.worker.progress.connect(self.progressBar.setValue)
-
-        self.thread_.finished.connect(lambda: self.startWorkButton.setEnabled(True))
-        self.thread_.finished.connect(lambda: self.showFileButton.setEnabled(True))
-        self.thread_.finished.connect(lambda: self.openFileButton.setEnabled(True))
-        self.worker.finished.connect(self.on_file_ready)
-
-        self.thread_.start()
+        self.threadpool.start(worker)
 
     def get_search_criteria(self) -> SearchCriteria:
         """
