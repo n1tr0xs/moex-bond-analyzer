@@ -33,7 +33,7 @@ jobs:
       
       - name: PEP8 Check
         run: |
-          pycodestyle . --ignore E501,E722,W503 --exclude=ui_form.py
+          pycodestyle . --ignore E501,E722,W503
       
       - name: Build an app
         run: |
