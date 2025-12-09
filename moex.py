@@ -44,6 +44,7 @@ class MOEX_API:
                 logger.warning(
                     f"Ошибка при получении информации по {ISIN}. Информация по облигации: {bond_data}."
                 )
+                logger.exception(e)
 
         return bonds
 

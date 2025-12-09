@@ -5,7 +5,6 @@ import datetime
 @dataclass
 class SearchCriteria:
     min_bond_yield: float = 0
-    max_bond_yield: float = float("inf")
     min_days_to_maturity: float = 1
     max_days_to_maturity: float = float("inf")
     face_units: list[str] | None = ("SUR",)  # Use None if don't care about face unit
@@ -26,7 +25,6 @@ class Bond:
         ACI: float,
         face_unit: str,
         credit_score: str | None = None,
-        is_qualified: bool | None = None,
     ):
         self.ISIN: str = ISIN
         self.bond_name: str = name
@@ -38,7 +36,6 @@ class Bond:
         self.ACI: float = ACI
         self.face_unit: str = face_unit
         self.credit_score: str = credit_score
-        self.is_qualified: bool = is_qualified
 
     @classmethod
     def from_list(cls, data: list):
@@ -66,7 +63,6 @@ class Bond:
             "Дней до погашения",
             "Доходность к погашению",
             "Валюта",
-            "Требуется квалификация",
         ]
 
     @property
@@ -81,11 +77,6 @@ class Bond:
             self.days_to_maturity,
             self.approximate_yield,
             self.face_unit,
-            (
-                "Неизвестно"
-                if self.is_qualified is None
-                else "Да" if self.is_qualified else "Нет"
-            ),
         ]
 
     @property
