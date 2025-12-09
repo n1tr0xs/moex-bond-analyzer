@@ -28,7 +28,12 @@ class MOEX_API:
 
     def get_boardgroup_bonds(self, boardgroup: str) -> list[Bond]:
         """
-        Returns all bonds from specified boardgroup.
+        Parse bonds from specified boardgroup.
+
+        :param boardgroup: Boargroup id to parse.
+        :type boardgroup: str
+        :return: List of bonds found in specified boardgroup.
+        :rtype: list[Bond]
         """
         logger.info(f"Запрос данных для группы {boardgroup}.")
         bonds = []
@@ -52,6 +57,11 @@ class MOEX_API:
         """
         Returns dictionary of securities found on specified boardgroup.
         Format of dictionary: ISIN -> security_data
+
+        :param boardgroup: Boargroup id to parse.
+        :type boardgroup: str
+        :return: Dictionary of securities found on specified boardgroup. {ISIN: security_data}
+        :rtype: dict
         """
         url = f"https://iss.moex.com/iss/engines/stock/markets/bonds/boardgroups/{boardgroup}/securities.json"
         params = {
@@ -67,6 +77,13 @@ class MOEX_API:
     def _get_json(self, url: str, params: dict | None = None) -> dict:
         """
         Returns JSON from the specified URL, taking into account the delay between requests.
+
+        :param url: URL to make request.
+        :type url: str
+        :param params: Params for request.
+        :type params: dict | None
+        :return: Dictionary generated from the response JSON.
+        :rtype: dict
         """
         self._respect_rate_limit()
         response = self._send_request(url, params=params)
@@ -91,6 +108,16 @@ class MOEX_API:
     def _send_request(
         self, url: str, params: dict | None = None
     ) -> requests.Response | None:
+        """
+        Send GET request to specified URL with specified params.
+
+        :param url: URL to send request.
+        :type url: str
+        :param params: Params for request.
+        :type params: dict | None
+        :return: Response from URL with specified params
+        :rtype: Response | None
+        """
         r = requests.Request("GET", url, params=params)
         prepared = self.session.prepare_request(r)
 
@@ -105,8 +132,17 @@ class MOEX_API:
             return None
 
     def _parse_json(self, response: requests.Response) -> dict:
+        """
+        Parse JSON from HTTP response safely.
+
+        :param response: Response object to parse.
+        :type response: requests.Response
+        :return: Parsed JSON as dict or empty dict if failed.
+        :rtype: dict
+        """
         try:
             return response.json()
-        except:
+        except Exception as e:
             logger.warning(f"Не удалось получить json.")
+            logger.exception(e)
             return {}

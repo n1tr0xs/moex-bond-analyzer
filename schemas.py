@@ -4,6 +4,16 @@ import datetime
 
 @dataclass
 class SearchCriteria:
+    """
+    Search criterias dataclass.
+
+    Args:
+        min_bond_yield (float): Minimum bond approximate yield.
+        min_days_to_maturity (float): Minimum days to bond maturity.
+        max_days_to_maturity (float): Maximum days to bond maturity.
+        face_units (list[str]): Allowed face units for bond. Defaults to "SUR". Use None if you don't care about face units.
+    """
+
     min_bond_yield: float = 0
     min_days_to_maturity: float = 1
     max_days_to_maturity: float = float("inf")
@@ -11,6 +21,10 @@ class SearchCriteria:
 
 
 class Bond:
+    """
+    Bond class.
+    """
+
     BROKER_FEE = 0.25 / 100
 
     def __init__(
@@ -26,6 +40,30 @@ class Bond:
         face_unit: str,
         credit_score: str | None = None,
     ):
+        """
+        Initialize Bond.
+
+        :param ISIN: Bond ISIN.
+        :type ISIN: str
+        :param name: Bond name.
+        :type name: str
+        :param face_value: Bond face value. Defaults to 0.
+        :type face_value: float
+        :param coupon_value: Bond coupons face value. Defaults to 0.
+        :type coupon_value: float
+        :param coupon_period: Bond coupons period. Defaults to +infinity.
+        :type coupon_period: int
+        :param maturity_date: Bond maturity date.
+        :type maturity_date: datetime.date
+        :param price: Bond current price in percents. Defaults to +intfinity.
+        :type price: float
+        :param ACI: Bond accumalated coupond income for now.
+        :type ACI: float
+        :param face_unit: Bond face unit.
+        :type face_unit: str
+        :param credit_score: Bond credit score.
+        :type credit_score: str | None
+        """
         self.ISIN: str = ISIN
         self.bond_name: str = name
         self.face_value: float = face_value or 0
@@ -66,7 +104,7 @@ class Bond:
         ]
 
     @property
-    def as_list(self):
+    def as_list(self) -> list:
         return [
             self.bond_name,
             self.credit_score or "Неизвестно",
@@ -80,14 +118,27 @@ class Bond:
         ]
 
     @property
-    def broker_price(self):
+    def broker_price(self) -> float:
+        """
+        Calculates bond price on broker.
+        Formula: (face_value * bond_price / 100 + ACI) * (1 + BROKER_FEE)
+
+        :return: Bond price on broker.
+        :rtype: float
+        """
         price = self.face_value * self.bond_price / 100  # no ACI
         price = price + self.ACI  # current market price
         price *= 1 + self.BROKER_FEE  # including broker fee
         return price
 
     @property
-    def coupons_amount(self):
+    def coupons_amount(self) -> int:
+        """
+        Calculates amount of coupons left in bond.
+
+        :return: Amount of coupons left in bond.
+        :rtype: int
+        """
         if not self.coupon_period:
             return 0
 
@@ -96,11 +147,23 @@ class Bond:
         return coupons
 
     @property
-    def days_to_maturity(self):
+    def days_to_maturity(self) -> int:
+        """
+        Calculates days to bond maturity date from today.
+        
+        :return: Days to bond maturity date from today.
+        :rtype: int
+        """
         return (self.maturity_date - datetime.date.today()).days
 
     @property
-    def approximate_yield(self):
+    def approximate_yield(self) -> float:
+        """
+        Calculates approximate bond yield from today to maturity date in percents.
+        
+        :return: Approximate bond yield from today to maturity date in percents.
+        :rtype: float
+        """
         if self.days_to_maturity <= 0:
             return 0
 

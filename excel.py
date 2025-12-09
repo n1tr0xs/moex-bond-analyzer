@@ -8,13 +8,29 @@ logger = logging.getLogger("Excel")
 
 
 class ExcelBook:
+    """
+    OpenPyXl wrapper.
+    """
+
     def __init__(self, file_name: str = None, max_save_attempts: int = 5):
-        self.file_name = self._normalize_file_name(file_name)
+        """
+        Initialize a ExcelBook.
+
+
+        :param file_name: Desired name for the file. Defaults to the current date.
+        :type file_name: str
+        :param max_save_attempts: Max attempts to save the file. Defaults to 5.
+        :type max_save_attempts: int
+        """
+        self.file_name = file_name or datetime.datetime.now().strftime("%d.%m.%Y")
         self.max_save_attempts = max_save_attempts
 
     def write_bonds(self, bond_list: list[Bond]) -> None:
         """
-        Writes given bond_list to excel file.
+        Writes given list to excel file.
+
+        :param bond_list: list of bonds to write in file
+        :type bond_list: list[Bond]
         """
         wb = openpyxl.Workbook()
         ws = wb.active
@@ -28,21 +44,14 @@ class ExcelBook:
 
         self._save_with_retries(wb)
 
-    @staticmethod
-    def _normalize_file_name(file_name: str | None) -> str:
-        """
-        Normalizes given file name.
-        If no file name given - sets default file name to current date `%d.%m.%Y`.
-        """
-        if file_name is None:
-            file_name = datetime.datetime.now().strftime("%d.%m.%Y")
-        return file_name
-
     def _center_worksheet(
         self, worksheet: openpyxl.worksheet.worksheet.Worksheet
     ) -> None:
         """
-        Centers data in worksheet.
+        Centers data in worksheet cells.
+
+        :param worksheet: Worksheet for centering data.
+        :type worksheet: openpyxl.worksheet.worksheet.Worksheet
         """
         logger.info("Центрирование ячеек таблицы...")
         center_alignment = openpyxl.styles.Alignment(horizontal="center")
@@ -57,7 +66,10 @@ class ExcelBook:
 
     def _auto_width(self, worksheet: openpyxl.worksheet.worksheet.Worksheet) -> None:
         """
-        Sets width to fit content
+        Sets width to fit content in worksheet.
+
+        :param worksheet: Worksheet automatically ajdust cells width.
+        :type worksheet: openpyxl.worksheet.worksheet.Worksheet
         """
         logger.info("Подбор ширины ячеек таблицы")
         for column_cells in worksheet.columns:
@@ -71,6 +83,9 @@ class ExcelBook:
         """
         Tries to save file self.max_save_attempts times.
         If file couldn't be saved - raises IOError.
+
+        :param wb: Workbook to save as file.
+        :type wb: openpyxl.Workbook
         """
         attempt = 0
         while attempt < self.max_save_attempts:

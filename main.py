@@ -23,6 +23,8 @@ from PySide6.QtCore import QThread
 from schemas import SearchCriteria
 from worker import Worker
 
+
+# Setting up logging.
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s:%(levelname)s - %(message)s",
@@ -41,6 +43,10 @@ logger = logging.getLogger("Main")
 
 
 class MainWindow(QMainWindow):
+    """
+    Main window class.
+    """
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -117,6 +123,9 @@ class MainWindow(QMainWindow):
         self.setFixedSize(self.sizeHint())
 
     def startWork(self):
+        """
+        Starts worker with data from input fields.
+        """
         # Search criteria setup
         INF = float("inf")
         min_yield = self.minBondYieldDoubleSpinBox.value() / 0.87
@@ -150,9 +159,17 @@ class MainWindow(QMainWindow):
         self.worker.finished.connect(self.on_file_ready)
 
     def on_file_ready(self, file_name: str):
+        """
+        Handler for worker finished.
+        Turns showFielButton on.
+        Binds slot to open explorer on the file.
+
+        :param file_name: name of file to highlight in explorer.
+        :type file_name: str
+        """
         cmd = f"explorer /select,{file_name}"
-        self.showFileButton.clicked.connect(lambda: Popen(cmd))
         self.showFileButton.setEnabled(True)
+        self.showFileButton.clicked.connect(lambda: Popen(cmd))
 
     def retranslateUi(self):
         self.setWindowTitle(

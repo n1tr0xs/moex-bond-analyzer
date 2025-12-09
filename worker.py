@@ -12,6 +12,9 @@ logger = logging.getLogger("Worker")
 
 
 class Worker(QObject):
+    """
+    Worker to be runned in thread.
+    """
     finished = Signal(str)
     progress = Signal(int)
     error = Signal(str)
@@ -19,6 +22,13 @@ class Worker(QObject):
     TOTAL_STEPS = 7
 
     def __init__(self, search_criteria: SearchCriteria, parent=None):
+        """
+        Initialize the Worker.
+        
+        :param search_criteria: Search criterias for bonds filtering.
+        :type search_criteria: SearchCriteria
+        :param parent: QT parent.
+        """
         super().__init__(parent)
         self.search_criteria = search_criteria
         self._step = 0
@@ -35,11 +45,24 @@ class Worker(QObject):
         return wrapper
 
     def emit_step(self):
+        """
+        Emits progress.
+        """
         self._step += 1
         self.progress.emit(self._step / self.TOTAL_STEPS * 100)
 
     @guarded
     def run(self):
+        """
+        Does worker steps:
+            1. Init MOEX_API.
+            2. Receive bonds.
+            3. Filter bonds.
+            4. Parse credit scores.
+            5. Sort bond by approximate yield.
+            6. Init ExcelBook.
+            7. Save bonds to excel.
+        """
         logger.info(f"Начало работы")
 
         moex_api = MOEX_API()
