@@ -20,7 +20,7 @@ class Worker(QObject):
     progress = Signal(int)
     error = Signal(str)
 
-    TOTAL_STEPS = 7
+    TOTAL_STEPS = 5
 
     def __init__(self, search_criteria: SearchCriteria, parent=None):
         """
@@ -33,6 +33,8 @@ class Worker(QObject):
         super().__init__(parent)
         self.search_criteria = search_criteria
         self._step = 0
+        self.moex_api = MOEX_API()
+        self.progress.emit(0)
 
     @staticmethod
     def guarded(func):
@@ -56,20 +58,15 @@ class Worker(QObject):
     def run(self):
         """
         Does worker steps:
-            1. Init MOEX_API.
-            2. Receive bonds.
-            3. Filter bonds.
-            4. Parse credit scores.
-            5. Sort bond by approximate yield.
-            6. Init ExcelBook.
-            7. Save bonds to excel.
+            - Receive bonds.
+            - Filter bonds.
+            - Parse credit scores.
+            - Sort bond by approximate yield.
+            - Init ExcelBook. Save bonds to excel.
         """
         logger.info(f"Начало работы")
 
-        moex_api = MOEX_API()
-        self.emit_step()
-
-        bonds = moex_api.get_bonds()
+        bonds = self.moex_api.get_bonds()
         self.emit_step()
 
         bonds = utils.filter_bonds(bonds, self.search_criteria)
@@ -82,8 +79,6 @@ class Worker(QObject):
         self.emit_step()
 
         book = ExcelBook()
-        self.emit_step()
-
         book.write_bonds(bonds)
         self.emit_step()
 
