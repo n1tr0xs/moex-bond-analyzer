@@ -95,11 +95,12 @@ class Bond:
             "Наименование",
             "Кредитный рейтинг эмитента",
             "ISIN",
-            "Номинал",
-            "Цена на бирже",
-            "Номинал купона",
-            "Дней до погашения",
-            "Доходность к погашению",
+            "Номинал, вал.",
+            "Цена на бирже, вал.",
+            "Номинал купона, вал.",
+            "Дней до погашения, дни",
+            "Годовая доходность, %",
+            "Доход к погашению, %",
             "Валюта",
         ]
 
@@ -114,6 +115,7 @@ class Bond:
             self.coupon_value,
             self.days_to_maturity,
             self.approximate_yield,
+            self.yield_to_maturity,
             self.face_unit,
         ]
 
@@ -175,3 +177,21 @@ class Bond:
         )
 
         return round(rate, 2)
+
+    @property
+    def yield_to_maturity(self) -> float:
+        """
+        Calculates total yield to maturity as a percentage of the invested amount.
+
+        :return: Total yield in percents from today to maturity relative to broker price.
+        :rtype: float
+        """
+        if self.days_to_maturity <= 0:
+            return 0
+
+        coupons_income = self.coupons_amount * self.coupon_value
+
+        total_income = self.face_value + coupons_income
+        total_yield = (total_income / self.broker_price - 1) * 100
+
+        return round(total_yield, 2)
