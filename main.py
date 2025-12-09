@@ -154,7 +154,6 @@ class MainWindow(QMainWindow):
         :param file_name: name of file to highlight in explorer.
         :type file_name: str
         """
-        print("on file ready called.")
         cmd = f"explorer /select,{file_name}"
 
         self.showFileButton.clicked.connect(lambda: Popen(cmd))
